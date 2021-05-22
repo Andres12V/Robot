@@ -1,1 +1,4 @@
-
+Instalar Gazebo 9, ROS melodic
+En la carpeta home/.gazebo/models agregar los modelos de github (En /home activar la opcion para mostrar archivos ocultos para ver la carpeta .gazebo)
+En la ruta usr/share/gazebo-9/worlds agregar el archivo cafe2.world (Sudo Nautilus)
+En la ruta opt/ros/melodic/share/gazebo_ros/launch agregar el archivo cafe2.launch (Sudo Nautilus)
