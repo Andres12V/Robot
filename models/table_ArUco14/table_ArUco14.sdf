@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="table_ArUco14">
+
+    <include>
+      <uri>model://cafe_table</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://ArUco_14</uri>
+      <pose>0 0.46 0.595 0 0 0</pose>
+    </include>
+
+  </model>
+</sdf>

@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<sdf version='1.4'>
+  <model name="ArUco14">
+	<static>true</static>
+          <link name='ArUco14_link'>
+            <pose>0 0 .1 0 0 0</pose>
+
+            <collision name='collision'>
+              <geometry>
+                <box>
+                  <size>0.15 0.002 0.15</size>
+                </box>
+              </geometry>
+            </collision>
+
+            <visual name='visual'>
+	      <lighting>0</lighting>
+              <geometry>
+                <mesh>
+            	  <uri>model://ArUco_14/meshes/Aruco14.dae</uri>
+		  <scale>1.6 1.6 1.6</scale>
+          	</mesh>
+              </geometry>
+            </visual>
+          </link>
+  </model>
+</sdf>
