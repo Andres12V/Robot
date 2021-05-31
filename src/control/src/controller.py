@@ -18,7 +18,7 @@ from visualization_msgs.msg import Marker
 import cv2.aruco as aruco
 import numpy as np
 import sys, time, math
-import imutils
+import matplotlib.pyplot as plt
 
 def isRotationMatrix(R):
     Rt = np.transpose(R)
@@ -65,9 +65,9 @@ class Controller:
 
         # Infrared sensors
         self.sub_laser1 = rospy.Subscriber('/my_project/sonar1', LaserScan, self.ls1_callback)
-        # self.sub_laser2 = rospy.Subscriber('/my_aruco/laser1/scan', LaserScan, self.ls2_callback)
-        # self.sub_laser3 = rospy.Subscriber('/my_aruco/laser2/scan', LaserScan, self.ls3_callback)
-        # self.sub_laser4 = rospy.Subscriber('/my_aruco/laser3/scan', LaserScan, self.ls4_callback)
+        # self.sub_laser2 = rospy.Subscriber('/my_project/sonar2', LaserScan, self.ls2_callback)
+        # self.sub_laser3 = rospy.Subscriber('/my_project/sonar3', LaserScan, self.ls3_callback)
+        # self.sub_laser4 = rospy.Subscriber('/my_project/sonar4', LaserScan, self.ls4_callback)
         # Position and orientation of the ArUco Marker
         self.pub_aruco_pose = rospy.Publisher('/aruco_pose', Pose, queue_size=10)
         self.aruco_msg = Pose()
@@ -77,6 +77,7 @@ class Controller:
     def control_callback(self, msg1):
         global Button
         global theta
+        global i
 
         # Get the POSE of the robot
         pos_x = round(msg1.pose.pose.position.x, 2)
@@ -87,16 +88,31 @@ class Controller:
         theta_deg = round(theta*(180/np.pi),2)
         print('Pose: x,y,theta', pos_x, pos_y, theta_deg )
 
-        Flag_r = 1
+        Flag_r = Flag1
+
+        my_list.append(pos_y)
+
+        cord_x.append(pos_x)
+        cord_y.append(pos_y)
+
+
         if Button==0:
-            xd = round(self.aruco_msg.position.x, 2)
-            yd = round(self.aruco_msg.position.y, 2)
-            # xd = 2.0
-            # yd = 2.0
+            # xd = round(self.aruco_msg.position.x, 2)
+            #
+            # yd = -(round(self.aruco_msg.position.y, 2) - my_list[0])
+            xd = 1.0
+            yd = 1.0
+            # xd = round(tray_x[i], 2)
+            # yd = round(tray_y[i], 2)
             print('Desired Pose xd, yd', xd, yd)
         elif Button==1:
-            xd = 0.0
-            yd = 0.0
+            xd = 1.0
+            yd = 6.0
+            print('Desired Pose xd, yd', xd, yd)
+        if i<499:
+            i+=1
+        else:
+            i=499
         K_p = 1  # For ts = 4 sec
 
         ex = xd-pos_x
@@ -106,19 +122,21 @@ class Controller:
 
         # Control signals:
         Vel = ( 0.5*np.sqrt( (ex*ex) + (ey*ey) ) )*Flag_r
-        Omega= ( 10*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
+        Omega = ( 10*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
+        print(Omega)
 
         self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
         self.r_w_msg = (1/(2*R))*(2*Vel+Omega*L)
 
         e_t=np.abs(ex)+np.abs(ey)
-        # if Button==0:
-        #     if e_t==0.0:
-        #         Button = input('Enter 1: ')
-        # elif Button==1:
-        #     if e_t==0.0:
-        #         Button = 0
-        #         aruco_num = input('Enter ArUco Marker id: ')
+        if Button==0:
+            if e_t==0.0:
+                Button = input('Enter 1: ')
+                my_list.clear()
+        elif Button==1:
+            if e_t==0.0:
+                Button = 0
+                aruco_num = input('Enter ArUco Marker id: ')
 
         self.left_wheel_vel.publish(self.l_w_msg)
         self.right_wheel_vel.publish(self.r_w_msg)
@@ -186,7 +204,7 @@ class Controller:
                     str_attitude = "CAMERA Attitude r=%4.0f  p=%4.0f  y=%4.0f"%(math.degrees(roll_camera),math.degrees(pitch_camera),
                                         math.degrees(yaw_camera))
                     cv.putText(aruco_image, str_attitude, (0, 365), font, 1, (255, 255, 0), 1, cv.LINE_AA)
-
+                    cv.putText(aruco_image, str(aruco_num) , (0, 380), font, 1, (0, 0, 255), 1, cv.LINE_AA)
                 except:
                     print('No ArUco Detected')
             # Display the frame
@@ -194,9 +212,9 @@ class Controller:
             #cv.imwrite('/home/andresvergara/images_aruco/pics/img15.jpg', cv_image)
             try:
                 pos_ar_x = 0.01*tvec[0]
-                print('Aruco_x',pos_ar_x)
+                #print('Aruco_x',pos_ar_x)
                 pos_ar_y = 0.01*tvec[2]
-                print('Aruco_y',pos_ar_y)
+                #print('Aruco_y',pos_ar_y)
                 self.aruco_msg.position.x = pos_ar_x
                 self.aruco_msg.position.y = pos_ar_y
                 self.aruco_msg.position.z = 0.5
@@ -222,8 +240,12 @@ class Controller:
         dist1 = round(msg_ls1.ranges[359], 2)
         phi1 = 0+theta
         if dist1<0.3:
-            self.l_w_msg = -0.2
-            self.r_w_msg = -0.2
+            # Control signals:
+            Vel = ( 0.05*np.sqrt( (ex*ex) + (ey*ey) ) )
+            Omega= ( 100*-np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )
+
+            self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
+            self.r_w_msg = (1/(2*R))*(2*Vel+Omega*L)
             Flag1 = 0
         else:
             Flag1 = 1
@@ -239,8 +261,15 @@ if __name__ == '__main__':
     Flag3 = 0
     Flag4 = 0
     Button = 0
+    i=0
     R = 0.065
     L = 0.3
+
+    my_list = list()
+    cord_x=list()
+    cord_y=list()
+    tray_x=np.linspace(1.0, 1.0, num=500)
+    tray_y=np.linspace(6.0, 0.0, num=500)
 
     # cap=cv.VideoCapture(0)
     # cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
@@ -250,6 +279,12 @@ if __name__ == '__main__':
     try:
         if not rospy.is_shutdown():
             rospy.spin()
+            plt.plot(1,6, 'x')
+            plt.plot(tray_x[499],tray_y[499], 'D')
+            plt.plot(cord_x,cord_y, 'g')
+            plt.plot(tray_x,tray_y, 'b')
+            plt.show()
 
     except rospy.ROSInterruptException as e:
         print(e)
+
