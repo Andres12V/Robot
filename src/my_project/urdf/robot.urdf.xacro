@@ -12,10 +12,11 @@
   </joint>
 
   <link name="base_link">
-    <pose>0 0 0.07 0 0 0</pose>
+    <pose>0 0 0 0 0 0</pose>
     <visual>
+      <origin xyz="0.06 0.006 -0.3" rpy="0 0 -1.5708" />
       <geometry>
-        <mesh filename="package://my_project/meshes/bases/burger_base.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://my_project/meshes/bases/Base.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="light_black"/>
     </visual>
@@ -37,7 +38,7 @@
   <joint name="wheel_left_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_left_link"/>
-    <origin xyz="0 0.17 -0.3" rpy="-1.57 0 0"/>
+    <origin xyz="0.027 0.17 -0.3" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -80,7 +81,7 @@
   <joint name="wheel_right_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_right_link"/>
-    <origin xyz="0.0 -0.17 -0.3" rpy="-1.57 0 0"/>
+    <origin xyz="0.027 -0.17 -0.3" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -198,7 +199,7 @@
   <joint name="sonar1_joint" type="fixed">
     <parent link="base_link"/>
     <child link="sonar1_link" />
-    <origin xyz="0.15 0 -0.25" rpy="0 0 1.0472"/>
+    <origin xyz="0.11780 0.11780 -0.25" rpy="0 0 0.7853"/>
   </joint>
 
   <link name="sonar1_link">
@@ -207,7 +208,7 @@
   <joint name="sonar2_joint" type="fixed">
     <parent link="base_link"/>
     <child link="sonar2_link" />
-    <origin xyz="0.15 0 -0.25" rpy="0 0 -1.0472"/>
+    <origin xyz="0.11780 -0.11780 -0.25" rpy="0 0 -0.7853"/>
   </joint>
 
   <link name="sonar2_link">
@@ -216,10 +217,19 @@
   <joint name="sonar3_joint" type="fixed">
     <parent link="base_link"/>
     <child link="sonar3_link" />
-    <origin xyz="-0.15 0 -0.25" rpy="0 0 2.61799"/>
+    <origin xyz="-0.11780 0.11780 -0.25" rpy="0 0 2.35619"/>
   </joint>
 
   <link name="sonar3_link">
+  </link>
+
+  <joint name="sonar4_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sonar4_link" />
+    <origin xyz="-0.11780 -0.11780 -0.25" rpy="0 0 -2.35619"/>
+  </joint>
+
+  <link name="sonar4_link">
   </link>
 
 </robot>

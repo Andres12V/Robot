@@ -3,8 +3,8 @@
   <!--arg name="hostname" default="127.0.1.1"/-->
   <!-- Robot pose -->
 
-  <arg name="x" default="0"/>
-  <arg name="y" default="0"/>
+  <arg name="x" default="1"/>
+  <arg name="y" default="6"/>
   <arg name="z" default="0.2"/>
   <arg name="roll" default="0"/>
   <arg name="pitch" default="0"/>
@@ -30,7 +30,7 @@
         args="-urdf -param robot_description -model my_project
 	-x $(arg x) -y $(arg y) -z $(arg z)
 	-R $(arg roll) -P $(arg pitch) -Y $(arg yaw)" />
-  <!--node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_turtlebot)/rviz/turtlebot.rviz" required="true"/-->
+  <!--node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_project)/rviz/robot.rviz" required="true"/-->
 
   <!-- Load joint controller configurations from YAML file to parameter server -->
 

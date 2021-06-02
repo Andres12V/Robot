@@ -112,7 +112,7 @@
   </gazebo>
 
 
-  <!--gazebo reference="sonar1_link">
+  <gazebo reference="sonar1_link">
    <sensor type="ray" name="head_hokuyo_sensor1">
      <pose>0 0 0 0 0 0</pose>
      <visualize>true</visualize>
@@ -138,7 +138,7 @@
        </noise>
      </ray>
      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-       <topicName>/my_turtlebot/sonar1</topicName>
+       <topicName>/my_project/sonar1</topicName>
        <frameName>sonar1_link</frameName>
      </plugin>
    </sensor>
@@ -170,7 +170,7 @@
       </noise>
     </ray>
     <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-      <topicName>/my_turtlebot/sonar2</topicName>
+      <topicName>/my_project/sonar2</topicName>
       <frameName>sonar2_link</frameName>
     </plugin>
   </sensor>
@@ -202,10 +202,42 @@
        </noise>
      </ray>
      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-       <topicName>/my_turtlebot/sonar3</topicName>
+       <topicName>/my_project/sonar3</topicName>
        <frameName>sonar3_link</frameName>
      </plugin>
    </sensor>
- </gazebo-->
+ </gazebo>
+
+ <gazebo reference="sonar4_link">
+  <sensor type="ray" name="head_hokuyo_sensor4">
+    <pose>0 0 0 0 0 0</pose>
+    <visualize>true</visualize>
+    <update_rate>40</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>720</samples>
+          <resolution>1</resolution>
+          <min_angle>-0.436332</min_angle>
+          <max_angle>0.436332</max_angle>
+        </horizontal>
+      </scan>
+      <range>
+        <min>0.04</min>
+        <max>0.3</max>
+        <resolution>0.01</resolution>
+      </range>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.01</stddev>
+      </noise>
+    </ray>
+    <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+      <topicName>/my_project/sonar4</topicName>
+      <frameName>sonar4_link</frameName>
+    </plugin>
+  </sensor>
+</gazebo>
 
 </robot>
