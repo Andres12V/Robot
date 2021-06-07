@@ -86,7 +86,7 @@ class Controller:
         rot_q = msg1.pose.pose.orientation
         (roll, pitch, theta) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
         theta_deg = round(theta*(180/np.pi),2)
-        print('Pose: x,y,theta', pos_x, pos_y, theta_deg )
+        print('Pose: x,y,theta', pos_x, pos_y, theta_deg, theta)
 
         Flag_r = Flag1
 
@@ -104,7 +104,7 @@ class Controller:
             yd = 1.0
             # xd = round(tray_x[i], 2)
             # yd = round(tray_y[i], 2)
-            print('Desired Pose xd, yd', xd, yd)
+            #print('Desired Pose xd, yd', xd, yd)
         elif Button==1:
             xd = 1.0
             yd = 6.0
@@ -117,13 +117,17 @@ class Controller:
 
         ex = xd-pos_x
         ey = yd-pos_y
-        theta_d = np.arctan2(ey, ex)
-        e_heading = theta_d - theta
+        if ey==0:
+            if ex==0:
+                theta_d=theta
+        else:
+            theta_d = np.arctan2(ey, ex)
 
+        e_heading = (theta_d - theta)
+        print('Desired Posew xd, yd', xd, yd, theta_d)
         # Control signals:
         Vel = ( 0.5*np.sqrt( (ex*ex) + (ey*ey) ) )*Flag_r
         Omega = ( 10*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
-        print(Omega)
 
         self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
         self.r_w_msg = (1/(2*R))*(2*Vel+Omega*L)
