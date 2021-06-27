@@ -65,8 +65,8 @@ class Controller:
         # self.msg = Twist()
 
         # Infrared sensors
-        self.sub_laser1 = rospy.Subscriber('/my_project/sonar1', LaserScan, self.ls1_callback)
-        self.sub_laser2 = rospy.Subscriber('/my_project/sonar2', LaserScan, self.ls2_callback)
+        # self.sub_laser1 = rospy.Subscriber('/my_project/sonar1', LaserScan, self.ls1_callback)
+        # self.sub_laser2 = rospy.Subscriber('/my_project/sonar2', LaserScan, self.ls2_callback)
         # self.sub_laser3 = rospy.Subscriber('/my_project/sonar3', LaserScan, self.ls3_callback)
         # self.sub_laser4 = rospy.Subscriber('/my_project/sonar4', LaserScan, self.ls4_callback)
         # Position and orientation of the ArUco Marker
@@ -74,12 +74,14 @@ class Controller:
         self.aruco_msg = Pose()
 
         # Frecuency of the loop:
-        self.rate = rospy.Rate(50)
+        self.rate = rospy.Rate(100)
 
     def control_callback(self, msg1):
         global Button
         global theta
         global i
+        global int_e
+        global smallest
 
         # Get the POSE of the robot:
         pos_x = round(msg1.pose.pose.position.x, 2)
@@ -92,7 +94,7 @@ class Controller:
         print('Pose: x,y,theta', pos_x, pos_y, theta_deg)
 
         # Flags that switch the go-to-goal behavior to obstacle avoidance behavior:
-        Flag_r = Flag1*Flag2
+        Flag_r = 1
         my_list.append(pos_y)
 
         # Append the position of the robot in each iteration for the plot
@@ -101,10 +103,37 @@ class Controller:
 
         if Button==0:
             try:
+                # xd = 2.4
+                # yd = 0.0
                 # If the marker is detected reach the marker
                 if state=='M_detected':
-                    xd = 1.0
-                    yd = 1.0
+                    if id_to_find ==12:
+                        xd = 2.4
+                        yd = -1.0
+                    if id_to_find ==13:
+                        xd = 2.4
+                        yd = -4.5
+                    if id_to_find ==14:
+                        xd = 2.4
+                        yd = -8.0
+                    if id_to_find ==15:
+                        xd = -0.2
+                        yd = -1.0
+                    if id_to_find ==16:
+                        xd = -0.2
+                        yd = -4.5
+                    if id_to_find ==17:
+                        xd = -0.2
+                        yd = -8.0
+                    if id_to_find ==18:
+                        xd = -2.8
+                        yd = -1.0
+                    if id_to_find ==21:
+                        xd = -2.8
+                        yd = -4.5
+                    if id_to_find ==25:
+                        xd = -2.8
+                        yd = -8.0
                 # If there is no marker detected follow the designed path
                 if state=='No_M_detected':
                     xd = round(my_listx[i], 2)
@@ -125,34 +154,50 @@ class Controller:
         print('--------',state)
         ex = xd-pos_x
         ey = yd-pos_y
+        for it_x in my_listx:
+            for it_y in my_listy:
+                e_x = it_x-pos_x
+                e_y = it_y-pos_y
+                e_d = np.sqrt( (e_x*e_x) + (e_y*e_y) )
+                if smallest is None:
+                    smallest=e_d
+                elif e_x<smallest:
+                    smallest=e_d 
+
+
+        # Calculation of the total error in X and Y positions
+        e_t=np.abs(ex)+np.abs(ey)
+
         if state=='M_detected':
-            if ey==0:
-                if ex==0:
-                    theta_d=theta
+            if e_t==0:
+                theta_d=theta
             else:
                 theta_d = np.arctan2(ey, ex)
         if state=='No_M_detected':
-            theta_d = np.arctan2(ey, ex)
+            if e_t==0:
+                theta_d=theta
+            else:
+                theta_d = np.arctan2(ey, ex)
 
         e_heading = (theta_d - theta)
         print('Desired Posew xd, yd', xd, yd, theta_d)
 
         # Control signals:
-        Vel = ( 0.5*np.sqrt( (ex*ex) + (ey*ey) ) )*Flag_r
-        Omega = ( 10*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
+        e_diag = np.sqrt( (ex*ex) + (ey*ey) )
+        int_e+=e_diag
+        Vel = ( 0.1*e_diag )*Flag_r
+        Omega = ( 2*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
 
         # Get the required velocity of each wheel to reach the goal
         self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
         self.r_w_msg = (1/(2*R))*(2*Vel+Omega*L)
 
-        # Calculation of the total error in X and Y positions
-        e_t=np.abs(ex)+np.abs(ey)
         # If ArUco marker is detected, reach the marker and wait for the confirmation
         if state=='M_detected':
             # If the button have not been pressed and the total error is 0, the goal
             # have been reached, so the program waits for the confirmation button
             if Button==0:
-                if e_t==0.0:
+                if e_t==0.08:
                     Button = input('Enter 1: ')
                     my_list.clear()
             elif Button==1:
@@ -165,10 +210,10 @@ class Controller:
         # If no ArUco marker is detected, set the designed path points as the goal
         if state=='No_M_detected':
             if e_t<=0.2:
-                if i<599:
+                if i<59:
                     i+=1
                 else:
-                    i=599
+                    i=59
         # Publish the messages to the topics
         self.left_wheel_vel.publish(self.l_w_msg)
         self.right_wheel_vel.publish(self.r_w_msg)
@@ -177,6 +222,7 @@ class Controller:
 
     def cam_callback(self, data):
         global state
+        global id_to_find
         try:
             # Convert the image message from the simulated camera to cv image
             cv_image = self.bridge.imgmsg_to_cv2(data, 'bgr8')
@@ -218,7 +264,7 @@ class Controller:
                     rvec, tvec=ret[0][0,0,:], ret[1][0,0,:]
                     aruco.drawAxis(aruco_image, camera_matrix, camera_distortion, rvec, tvec, 10)
                     str_position= 'Marker Postion x=%4.0f  y=%4.0f  z=%4.0f'%(tvec[0], tvec[1], tvec[2])
-                    cv.putText(aruco_image, str_position, (0,290), font, 1, (0, 255, 255), 1, cv.LINE_AA)
+                    cv.putText(aruco_image, str_position, (0,290), font, 1, (0, 255, 0), 1, cv.LINE_AA)
                     #-- Obtain the rotation matrix tag->camera
                     R_ct    = np.matrix(cv.Rodrigues(rvec)[0])
                     R_tc    = R_ct.T
@@ -227,26 +273,28 @@ class Controller:
                     #-- Print the marker's attitude respect to camera frame
                     str_attitude = "Marker Attitude r=%4.0f  p=%4.0f  y=%4.0f"%(math.degrees(roll_marker),math.degrees(pitch_marker),
                                         math.degrees(yaw_marker))
-                    cv.putText(aruco_image, str_attitude, (0, 315), font, 1, (0, 255, 255), 1, cv.LINE_AA)
+                    cv.putText(aruco_image, str_attitude, (0, 315), font, 1, (0, 255, 0), 1, cv.LINE_AA)
 
-                    #-- Now get Position and attitude f the camera respect to the marker
-                    pos_camera = -R_tc*np.matrix(tvec).T
-
-                    str_position = "CAMERA Position x=%4.0f  y=%4.0f  z=%4.0f"%(pos_camera[0], pos_camera[1], pos_camera[2])
-                    cv.putText(aruco_image, str_position, (0, 340), font, 1, (255, 255, 0), 1, cv.LINE_AA)
-
-                    #-- Get the attitude of the camera respect to the frame
-                    roll_camera, pitch_camera, yaw_camera = rotationMatrixToEulerAngles(R_flip*R_tc)
-                    str_attitude = "CAMERA Attitude r=%4.0f  p=%4.0f  y=%4.0f"%(math.degrees(roll_camera),math.degrees(pitch_camera),
-                                        math.degrees(yaw_camera))
-                    cv.putText(aruco_image, str_attitude, (0, 365), font, 1, (255, 255, 0), 1, cv.LINE_AA)
-                    cv.putText(aruco_image, str(aruco_num) , (0, 380), font, 1, (0, 0, 255), 1, cv.LINE_AA)
+                    # #-- Now get Position and attitude f the camera respect to the marker
+                    # pos_camera = -R_tc*np.matrix(tvec).T
+                    #
+                    # str_position = "CAMERA Position x=%4.0f  y=%4.0f  z=%4.0f"%(pos_camera[0], pos_camera[1], pos_camera[2])
+                    # cv.putText(aruco_image, str_position, (0, 340), font, 1, (255, 255, 0), 1, cv.LINE_AA)
+                    #
+                    # #-- Get the attitude of the camera respect to the frame
+                    # roll_camera, pitch_camera, yaw_camera = rotationMatrixToEulerAngles(R_flip*R_tc)
+                    # str_attitude = "CAMERA Attitude r=%4.0f  p=%4.0f  y=%4.0f"%(math.degrees(roll_camera),math.degrees(pitch_camera),
+                    #                     math.degrees(yaw_camera))
+                    # cv.putText(aruco_image, str_attitude, (0, 365), font, 1, (255, 255, 0), 1, cv.LINE_AA)
+                    # cv.putText(aruco_image, str(aruco_num) , (0, 380), font, 1, (0, 0, 255), 1, cv.LINE_AA)
 
                 except:
                     print('No ArUco Detected')
+            # else:
+            #     state = 'No_M_detected'
             # Display the frame
             cv.imshow('frame', aruco_image)
-            #cv.imwrite('/home/andresvergara/images_aruco/pics/img15.jpg', cv_image)
+            #cv.imwrite('/home/andresvergara/images_aruco/pics/img4.jpg', cv_image)
             try:
                 pos_ar_x = 0.01*tvec[0]
                 #print('Aruco_x',pos_ar_x)
@@ -280,11 +328,11 @@ class Controller:
         # If the distance is less than 30 cm, switch to the obstacle avoidance behavior
         if dist1<0.3:
             # Control signals:
-            Vel = ( 0.05*np.sqrt( (ex*ex) + (ey*ey) ) )
-            Omega= ( 100*-np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )
+            # Vel = ( 0.05*np.sqrt( (ex*ex) + (ey*ey) ) )
+            # Omega= ( 100*-np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )
 
-            self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
-            self.r_w_msg = (1/(2*R))*(2*Vel+Omega*L)
+            self.l_w_msg = 1
+            self.r_w_msg = 0
             Flag1 = 0
         else:
             Flag1 = 1
@@ -352,10 +400,13 @@ if __name__ == '__main__':
     Flag3 = 0
     Flag4 = 0
     Button = 0
+    int_e = 0
     state = 'No_M_detected'
     i = 0
     R = 0.065
     L = 0.3
+    global smallest
+    smallest = None
 
     my_list = list()
     cord_x=list()
@@ -364,41 +415,41 @@ if __name__ == '__main__':
     # Path to follow when no ArUco marker is detected:
     my_listx = list()
     my_listy = list()
-    tray_x=np.linspace(1.0, 1.1, num=100)
-    tray_y=np.linspace(6.0, 6.0, num=100)
-    tray_x2=np.linspace(1.1, 1.1, num=100)
-    tray_y2=np.linspace(6.0, -7.25, num=100)
-    tray_x3=np.linspace(1.1, 1.0, num=100)
-    tray_y3=np.linspace(-7.25, -7.25, num=100)
-    tray_x4=np.linspace(1.0, 1.0, num=100)
-    tray_y4=np.linspace(-7.25, 0, num=100)
-    tray_x5=np.linspace(1.0, -1.5, num=100)
-    tray_y5=np.linspace(0, 0, num=100)
-    tray_x6=np.linspace(-1.5, -1.5, num=100)
-    tray_y6=np.linspace(0, -7.25, num=100)
-    for n in range(0,100):
+    tray_x=np.linspace(1.0, 1.1, num=10)
+    tray_y=np.linspace(6.0, 6.0, num=10)
+    tray_x2=np.linspace(1.1, 1.1, num=10)
+    tray_y2=np.linspace(6.0, -7.25, num=10)
+    tray_x3=np.linspace(1.1, 1.0, num=10)
+    tray_y3=np.linspace(-7.25, -7.25, num=10)
+    tray_x4=np.linspace(1.0, 1.0, num=10)
+    tray_y4=np.linspace(-7.25, 0, num=10)
+    tray_x5=np.linspace(1.0, -1.5, num=10)
+    tray_y5=np.linspace(0, 0, num=10)
+    tray_x6=np.linspace(-1.5, -1.5, num=10)
+    tray_y6=np.linspace(0, -7.25, num=10)
+    for n in range(0,10):
         my_listx.append(tray_x[n])
-    for n1 in range(0,100):
+    for n1 in range(0,10):
         my_listx.append(tray_x2[n1])
-    for n2 in range(0,100):
+    for n2 in range(0,10):
         my_listx.append(tray_x3[n2])
-    for n3 in range(0,100):
+    for n3 in range(0,10):
         my_listx.append(tray_x4[n3])
-    for n4 in range(0,100):
+    for n4 in range(0,10):
         my_listx.append(tray_x5[n4])
-    for n5 in range(0,100):
+    for n5 in range(0,10):
         my_listx.append(tray_x6[n5])
-    for m in range(0,100):
+    for m in range(0,10):
         my_listy.append(tray_y[m])
-    for m1 in range(0,100):
+    for m1 in range(0,10):
         my_listy.append(tray_y2[m1])
-    for m2 in range(0,100):
+    for m2 in range(0,10):
         my_listy.append(tray_y3[m2])
-    for m3 in range(0,100):
+    for m3 in range(0,10):
         my_listy.append(tray_y4[m3])
-    for m4 in range(0,100):
+    for m4 in range(0,10):
         my_listy.append(tray_y5[m4])
-    for m5 in range(0,100):
+    for m5 in range(0,10):
         my_listy.append(tray_y6[m5])
 
     ## This part is for the real camera ##
@@ -421,7 +472,7 @@ if __name__ == '__main__':
             plt.plot(-2.8,-2, 'o')
             plt.plot(-2.8,-5.5, 'o')
             plt.plot(-2.8,-9, 'o')
-            plt.plot(tray_x6[99],tray_y6[99], 'D')
+            plt.plot(tray_x6[9],tray_y6[9], 'D')
             plt.plot(my_listx,my_listy, 'b')
             plt.show()
 
