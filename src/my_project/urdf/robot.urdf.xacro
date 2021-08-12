@@ -38,7 +38,7 @@
   <joint name="wheel_left_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_left_link"/>
-    <origin xyz="0.027 0.17 -0.3" rpy="-1.57 0 0"/>
+    <origin xyz="0.013 0.17 -0.3" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -74,14 +74,14 @@
     </joint>
     <actuator name="wheel_left_motor">
       <hardwareInterface>VelocityJointInterface</hardwareInterface>
-      <mechanicalReduction>1</mechanicalReduction>
+      <mechanicalReduction>34</mechanicalReduction>
     </actuator>
   </transmission>
 
   <joint name="wheel_right_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_right_link"/>
-    <origin xyz="0.027 -0.17 -0.3" rpy="-1.57 0 0"/>
+    <origin xyz="0.013 -0.17 -0.3" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -117,7 +117,7 @@
     </joint>
     <actuator name="wheel_right_motor">
       <hardwareInterface>VelocityJointInterface</hardwareInterface>
-      <mechanicalReduction>1</mechanicalReduction>
+      <mechanicalReduction>34</mechanicalReduction>
     </actuator>
   </transmission>
 

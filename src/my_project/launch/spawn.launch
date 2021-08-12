@@ -8,6 +8,7 @@
   <arg name="z" default="0.2"/>
   <arg name="roll" default="0"/>
   <arg name="pitch" default="0"/>
+  <!--arg name="yaw" default="1.5708"/-->
   <arg name="yaw" default="-1.5708"/>
   <!--Gazebo empty world launch file-->
   <include file="$(find gazebo_ros)/launch/cafe2.launch">
