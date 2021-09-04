@@ -21,6 +21,7 @@ import cv2.aruco as aruco
 import numpy as np
 import sys, time, math
 import matplotlib.pyplot as plt
+import serial
 
 def isRotationMatrix(R):
     Rt = np.transpose(R)
@@ -48,6 +49,75 @@ def rotationMatrixToEulerAngles(R):
         z = 0
 
     return np.array([x, y, z])
+
+def restaurant_path():
+    tray_x=np.linspace(1.0, 1.1, num=5)
+    tray_y=np.linspace(6.0, 6.0, num=5)
+    tray_x2=np.linspace(1.1, 1.1, num=5)
+    tray_y2=np.linspace(6.0, -7.25, num=5)
+    tray_x3=np.linspace(1.1, 1.0, num=5)
+    tray_y3=np.linspace(-7.25, -7.25, num=5)
+    tray_x4=np.linspace(1.0, 1.0, num=5)
+    tray_y4=np.linspace(-7.25, 0, num=5)
+    tray_x5=np.linspace(1.0, -1.5, num=5)
+    tray_y5=np.linspace(0, 0, num=5)
+    tray_x6=np.linspace(-1.5, -1.5, num=5)
+    tray_y6=np.linspace(0, -7.25, num=5)
+    for n in range(0,5):
+        my_listx.append(tray_x[n])
+    for n1 in range(0,5):
+        my_listx.append(tray_x2[n1])
+    for n2 in range(0,5):
+        my_listx.append(tray_x3[n2])
+    for n3 in range(0,5):
+        my_listx.append(tray_x4[n3])
+    for n4 in range(0,5):
+        my_listx.append(tray_x5[n4])
+    for n5 in range(0,5):
+        my_listx.append(tray_x6[n5])
+    for m in range(0,5):
+        my_listy.append(tray_y[m])
+    for m1 in range(0,5):
+        my_listy.append(tray_y2[m1])
+    for m2 in range(0,5):
+        my_listy.append(tray_y3[m2])
+    for m3 in range(0,5):
+        my_listy.append(tray_y4[m3])
+    for m4 in range(0,5):
+        my_listy.append(tray_y5[m4])
+    for m5 in range(0,5):
+        my_listy.append(tray_y6[m5])
+    ## Path to go back to the initial point
+    g_b_x = list()
+    g_b_y = list()
+    go_back_x=np.linspace(-1.5, -1.5, num=5)
+    go_back_y=np.linspace(-7.25, 0, num=5)
+    go_back_x2=np.linspace(-1.5, 1.0, num=5)
+    go_back_y2=np.linspace(0, 0, num=5)
+    go_back_x3=np.linspace(1.0, 1.0, num=5)
+    go_back_y3=np.linspace(0, 6.0, num=5)
+    for n6 in range(0,5):
+        g_b_x.append(go_back_x[n6])
+    for n7 in range(0,5):
+        g_b_x.append(go_back_x2[n7])
+    for n8 in range(0,5):
+        g_b_x.append(go_back_x3[n8])
+
+    for m6 in range(0,5):
+        g_b_y.append(go_back_y[m6])
+    for m7 in range(0,5):
+        g_b_y.append(go_back_y2[m7])
+    for m8 in range(0,5):
+        g_b_y.append(go_back_y3[m8])
+
+    return g_b_x, g_b_y, my_listx, my_listy, tray_y6, tray_x6
+
+def inter_p_xd(pos_x,xd,k,num_p):
+    x_list=np.linspace(pos_x, xd, num=num_p)
+    return x_list[k]
+def inter_p_yd(pos_y,yd,k,num_p):
+    y_list=np.linspace(pos_y, yd, num=num_p)
+    return y_list[k]
 
 class Controller:
     def __init__(self):
@@ -85,8 +155,7 @@ class Controller:
     def control_callback(self, msg1):
         global Button
         global theta
-        global i
-        global j
+        global i,j,k
         global int_e
         global int_e_h
         global smallest
@@ -104,7 +173,6 @@ class Controller:
 
         "Flags that switch the go-to-goal behavior to obstacle avoidance behavior:"
         Flag_r = 1
-
         if Button==0:
             try:
                 # xd = 2.4
@@ -112,8 +180,8 @@ class Controller:
                 "If the marker is detected reach the marker:"
                 if state=='M_detected':
                     if id_to_find ==12:
-                        xd = 2.4
-                        yd = -1.0
+                        xd = inter_p_xd(pos_x, 2.4,k,num_p=3)
+                        yd = inter_p_yd(pos_y,-1.0,k,num_p=3)
                     if id_to_find ==13:
                         xd = 2.4
                         yd = -4.5
@@ -141,13 +209,14 @@ class Controller:
                 "If there is no marker detected follow the designed path:"
                 if state=='No_M_detected':
                     # xd = 0.5
-                    # yd = 0.5
+                    # yd = 5.5
                     if i<29:
                         xd = round(my_listx[i], 2)
                         yd = round(my_listy[i], 2)
                     else:
                         xd = round(g_b_x[j], 2)
                         yd = round(g_b_y[j], 2)
+
             except:
                 pass
             # xd = round(self.aruco_msg.position.x, 2)
@@ -158,15 +227,17 @@ class Controller:
             # yd = round(my_listy[i], 2)
             print('Desired Pose xd, yd', xd, yd)
         elif Button==1:
-            xd = 1.0
-            yd = 6.0
+            # xd = 1.0
+            # yd = 6.0
+            xd = inter_p_xd(pos_x, 1,k,num_p=4)
+            yd = inter_p_yd(pos_y, 6,k,num_p=4)
             print('Desired Pose xd, yd', xd, yd)
 
         #print('--------',state)
         "Erros in the x & y coordinates:"
         ex = xd-pos_x
         ey = yd-pos_y
-        "Follow the closer point of the designed path:"
+        "Follow the closest point of the designed path:"
         # for it_x in my_listx:
         #     for it_y in my_listy:
         #         e_x = it_x-pos_x
@@ -199,18 +270,17 @@ class Controller:
         "Control signals:"
         e_diag = np.sqrt( (ex*ex) + (ey*ey) )
         int_e+=e_diag
-        derivate_e.append(e_diag)
-        try:
-            d_e = (derivate_e[-1]-derivate_e[-2]) /0.01
-        except:
-            d_e = 0
-        int_e_h+=e_heading
         if state=='M_detected':
             Vel = ( 0.1*e_diag )*Flag_r
             Omega = ( 1*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
         if state=='No_M_detected':
-            Vel = ( 0.08*e_diag+0.0001*int_e)*Flag_r
-            Omega = ( 0.6*np.arctan2( np.sin(e_heading), np.cos(e_heading)) )*Flag_r
+            Vel = ( 0.1*e_diag+0.00003*int_e )*Flag_r
+            Omega = ( 1*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
+            # if e_t<=0.15:
+            #     Vel = 0
+            # else:
+            # Vel = ( 0.08*e_diag*np.cos(e_heading) )*Flag_r
+            # Omega = ( 0.08*np.sin(e_heading)*np.cos(e_heading)+0.2*e_heading )*Flag_r
 
         "Get the required velocity of each wheel to reach the goal"
         self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
@@ -231,7 +301,10 @@ class Controller:
             if Button==0:
                 if e_t==0.0:
                     Button = input('Enter 1: ')
+                    k = 1
                     my_list.clear()
+                elif e_t<0.01:
+                    k += 1
             elif Button==1:
             # """If the button have been pressed and the total error is 0, the robot
             # have been arrived to the initial position, then waits for a new table request"""
@@ -342,7 +415,7 @@ class Controller:
             # else:
             #     state = 'No_M_detected'
             # Display the frame
-            # cv.imshow('frame', aruco_image)
+            cv.imshow('frame', aruco_image)
             #cv.imwrite('/home/andresvergara/images_aruco/pics/img4.jpg', cv_image)
             try:
                 pos_ar_x = 0.01*tvec[0]
@@ -457,21 +530,35 @@ class Controller:
 
 
 if __name__ == '__main__':
+    # A = ''
+    # List = ['1','2','3','A','4','5','6','B','7','8','9','C','*','0','#','D']
+    # ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+    # ser.flush()
+    # while True:
+    #     if ser.in_waiting > 0:
+    #         line = ser.readline().decode('utf-8').rstrip()
+    #         #print(line)
+    #         if line in List:
+    #             if line == '3':
+    #                 print('---------')
+    #                 A = A[:-1]
+    #             else:
+    #                 A += line
+    #                 #print(len(A))
+    #         print('A:', A)
+    #         if line == '0':
+    #             break
     "Number of the table request:"
+    # aruco_num = A
     aruco_num = input('Enter ArUco Marker id: ')
-    Flag1 = 0
-    Flag2 = 0
-    Flag3 = 0
-    Flag4 = 0
+    Flag1,Flag2,Flag3,Flag4 = 0,0,0,0
     Button = 0
     int_e = 0
     int_e_h = 0
     Omega = 0
     state = 'No_M_detected'
-    i = 0
-    j = 0
-    R = 0.0325
-    L = 0.3
+    i,j,k = 0,0,1
+    R,L = 0.0325, 0.3
     global smallest
     smallest = None
     t=0
@@ -508,64 +595,8 @@ if __name__ == '__main__':
     # tray_y5=np.linspace(1.35, 0.9, num=2)
     # tray_x6=np.linspace(0, 0, num=2)
     # tray_y6=np.linspace(0, 0, num=2)
-    tray_x=np.linspace(1.0, 1.1, num=5)
-    tray_y=np.linspace(6.0, 6.0, num=5)
-    tray_x2=np.linspace(1.1, 1.1, num=5)
-    tray_y2=np.linspace(6.0, -7.25, num=5)
-    tray_x3=np.linspace(1.1, 1.0, num=5)
-    tray_y3=np.linspace(-7.25, -7.25, num=5)
-    tray_x4=np.linspace(1.0, 1.0, num=5)
-    tray_y4=np.linspace(-7.25, 0, num=5)
-    tray_x5=np.linspace(1.0, -1.5, num=5)
-    tray_y5=np.linspace(0, 0, num=5)
-    tray_x6=np.linspace(-1.5, -1.5, num=5)
-    tray_y6=np.linspace(0, -7.25, num=5)
-    for n in range(0,5):
-        my_listx.append(tray_x[n])
-    for n1 in range(0,5):
-        my_listx.append(tray_x2[n1])
-    for n2 in range(0,5):
-        my_listx.append(tray_x3[n2])
-    for n3 in range(0,5):
-        my_listx.append(tray_x4[n3])
-    for n4 in range(0,5):
-        my_listx.append(tray_x5[n4])
-    for n5 in range(0,5):
-        my_listx.append(tray_x6[n5])
-    for m in range(0,5):
-        my_listy.append(tray_y[m])
-    for m1 in range(0,5):
-        my_listy.append(tray_y2[m1])
-    for m2 in range(0,5):
-        my_listy.append(tray_y3[m2])
-    for m3 in range(0,5):
-        my_listy.append(tray_y4[m3])
-    for m4 in range(0,5):
-        my_listy.append(tray_y5[m4])
-    for m5 in range(0,5):
-        my_listy.append(tray_y6[m5])
-    ## Path to go back to the initial point
-    g_b_x = list()
-    g_b_y = list()
-    go_back_x=np.linspace(-1.5, -1.5, num=5)
-    go_back_y=np.linspace(-7.25, 0, num=5)
-    go_back_x2=np.linspace(-1.5, 1.0, num=5)
-    go_back_y2=np.linspace(0, 0, num=5)
-    go_back_x3=np.linspace(1.0, 1.0, num=5)
-    go_back_y3=np.linspace(0, 6.0, num=5)
-    for n6 in range(0,5):
-        g_b_x.append(go_back_x[n6])
-    for n7 in range(0,5):
-        g_b_x.append(go_back_x2[n7])
-    for n8 in range(0,5):
-        g_b_x.append(go_back_x3[n8])
 
-    for m6 in range(0,5):
-        g_b_y.append(go_back_y[m6])
-    for m7 in range(0,5):
-        g_b_y.append(go_back_y2[m7])
-    for m8 in range(0,5):
-        g_b_y.append(go_back_y3[m8])
+    g_b_x, g_b_y, my_listx, my_listy, tray_y6, tray_x6 = restaurant_path()
 
     ## This part is for the real camera ##
     # cap=cv.VideoCapture(0)
@@ -590,22 +621,30 @@ if __name__ == '__main__':
             plt.plot(tray_x6[4],tray_y6[4], 'kD', label='Final point')
             plt.figure(1)
             plt.plot(my_listx,my_listy, 'b--', label='Trajectory')
+            plt.ylabel("Y coordinates (m)")
+            plt.xlabel("X coordinates (m)")
             plt.legend()
             plt.figure(2)
-            plt.plot(mein_w1, 'g', label='Left_wheel velocity')
-            plt.plot(mein_w2, 'r', label='Right wheel velocity')
+            plt.plot(my_t,mein_w1, 'g', label='Left_wheel velocity')
+            plt.plot(my_t,mein_w2, 'r', label='Right wheel velocity')
+            plt.ylabel("Angular velocity (rad/s)")
+            plt.xlabel("Time (s)")
             plt.legend()
             plt.figure(3)
             plt.plot(my_t, ref_x, 'r--', label='Ref x')
             plt.plot(my_t, cord_x, 'g', label='Pos x')
             plt.plot(my_t, ref_y, 'k--', label='Ref y')
             plt.plot(my_t, cord_y, 'b', label='Pos y')
+            plt.ylabel("Position (m)")
+            plt.xlabel("Time (s)")
             plt.legend()
             # plt.plot(my_t, posx_enc, 'mo')
             # plt.plot(my_t, posy_enc, 'yo')
             plt.figure(4)
             plt.plot(my_t, ref_th, 'r--', label='Theta desired')
             plt.plot(my_t, vec_th, 'g', label='Theta')
+            plt.ylabel("Orientation (rad)")
+            plt.xlabel("Time (s)")
             plt.legend()
             plt.show()
 

@@ -44,9 +44,9 @@
 
   <link name="wheel_left_link">
     <visual>
-      <origin xyz="0 0 0" rpy="1.57 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://my_project/meshes/wheels/left_tire.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://my_project/meshes/wheels/Wheel.stl" scale="0.01 0.01 0.01"/>
       </geometry>
       <material name="dark"/>
     </visual>
@@ -87,9 +87,9 @@
 
   <link name="wheel_right_link">
     <visual>
-      <origin xyz="0 0 0" rpy="1.57 0 0"/>
+      <origin xyz="0 0 0" rpy="0 3.1415 0"/>
       <geometry>
-        <mesh filename="package://my_project/meshes/wheels/right_tire.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://my_project/meshes/wheels/Wheel.stl" scale="0.01 0.01 0.01"/>
       </geometry>
       <material name="dark"/>
     </visual>
