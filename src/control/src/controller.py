@@ -49,7 +49,6 @@ def rotationMatrixToEulerAngles(R):
         z = 0
 
     return np.array([x, y, z])
-
 def restaurant_path():
     tray_x=np.linspace(1.0, 1.1, num=5)
     tray_y=np.linspace(6.0, 6.0, num=5)
@@ -111,13 +110,52 @@ def restaurant_path():
         g_b_y.append(go_back_y3[m8])
 
     return g_b_x, g_b_y, my_listx, my_listy, tray_y6, tray_x6
-
 def inter_p_xd(pos_x,xd,k,num_p):
     x_list=np.linspace(pos_x, xd, num=num_p)
     return x_list[k]
 def inter_p_yd(pos_y,yd,k,num_p):
     y_list=np.linspace(pos_y, yd, num=num_p)
     return y_list[k]
+def ids_detected(pos_x,pos_y,k,id_to_find):
+    if id_to_find ==12:
+        xd = inter_p_xd(pos_x, 2.4,k,num_p=3)
+        yd = inter_p_yd(pos_y,-1.0,k,num_p=3)
+    if id_to_find ==13:
+        xd = inter_p_xd(pos_x, 2.4,k,num_p=5)
+        yd = inter_p_yd(pos_y,-4.5,k,num_p=5)
+    if id_to_find ==14:
+        xd = inter_p_xd(pos_x, 2.4,k,num_p=5)
+        yd = inter_p_yd(pos_y,-8.0,k,num_p=5)
+    if id_to_find ==15:
+        xd = inter_p_xd(pos_x,-0.2,k,num_p=3)
+        yd = inter_p_yd(pos_y,-1.0,k,num_p=3)
+    if id_to_find ==16:
+        xd = inter_p_xd(pos_x,-0.2,k,num_p=5)
+        yd = inter_p_yd(pos_y,-4.5,k,num_p=5)
+    if id_to_find ==17:
+        xd = inter_p_xd(pos_x,-0.2,k,num_p=5)
+        yd = inter_p_yd(pos_y,-8.0,k,num_p=5)
+    if id_to_find ==18:
+        xd = inter_p_xd(pos_x,-2.8,k,num_p=4)
+        yd = inter_p_yd(pos_y,-1.0,k,num_p=4)
+    if id_to_find ==21:
+        xd = inter_p_xd(pos_x,-2.8,k,num_p=5)
+        yd = inter_p_yd(pos_y,-4.5,k,num_p=5)
+    if id_to_find ==25:
+        xd = inter_p_xd(pos_x,-2.8,k,num_p=5)
+        yd = inter_p_yd(pos_y,-8.0,k,num_p=5)
+    return xd, yd
+def aruco_num_request():
+    global aruco_num
+    while 1:
+        aruco_num = input('Enter ArUco Marker id: ')
+        if str(aruco_num) in List_aruco_ids:
+            break
+        else:
+            print('The requested table is not avilable, please enter a valid number')
+            print('Avilables are 12,13,14,15,16,17,18,21,25')
+            continue
+    return aruco_num
 
 class Controller:
     def __init__(self):
@@ -174,51 +212,25 @@ class Controller:
         "Flags that switch the go-to-goal behavior to obstacle avoidance behavior:"
         Flag_r = 1
         if Button==0:
-            try:
-                # xd = 2.4
-                # yd = 0.0
-                "If the marker is detected reach the marker:"
-                if state=='M_detected':
-                    if id_to_find ==12:
-                        xd = inter_p_xd(pos_x, 2.4,k,num_p=3)
-                        yd = inter_p_yd(pos_y,-1.0,k,num_p=3)
-                    if id_to_find ==13:
-                        xd = 2.4
-                        yd = -4.5
-                    if id_to_find ==14:
-                        xd = 2.4
-                        yd = -8.0
-                    if id_to_find ==15:
-                        xd = -0.2
-                        yd = -1.0
-                    if id_to_find ==16:
-                        xd = -0.2
-                        yd = -4.5
-                    if id_to_find ==17:
-                        xd = -0.2
-                        yd = -8.0
-                    if id_to_find ==18:
-                        xd = -2.8
-                        yd = -1.0
-                    if id_to_find ==21:
-                        xd = -2.8
-                        yd = -4.5
-                    if id_to_find ==25:
-                        xd = -2.8
-                        yd = -8.0
-                "If there is no marker detected follow the designed path:"
-                if state=='No_M_detected':
-                    # xd = 0.5
-                    # yd = 5.5
-                    if i<29:
-                        xd = round(my_listx[i], 2)
-                        yd = round(my_listy[i], 2)
-                    else:
-                        xd = round(g_b_x[j], 2)
-                        yd = round(g_b_y[j], 2)
+            #try:
+            # xd = 2.4
+            # yd = 0.0
+            "If the marker is detected reach the marker:"
+            if state=='M_detected':
+                xd, yd = ids_detected(pos_x,pos_y,k,id_to_find)
+            "If there is no marker detected follow the designed path:"
+            if state=='No_M_detected':
+                # xd = 0.5
+                # yd = 5.5
+                if i<29:
+                    xd = inter_p_xd(pos_x, round(my_listx[i], 2),k,num_p=3)
+                    yd = inter_p_yd(pos_y, round(my_listy[i], 2),k,num_p=3)
+                else:
+                    xd = inter_p_xd(pos_x, round(g_b_x[j], 2),k,num_p=3)
+                    yd = inter_p_yd(pos_y, round(g_b_y[j], 2),k,num_p=3)
 
-            except:
-                pass
+            # except:
+            #     pass
             # xd = round(self.aruco_msg.position.x, 2)
             # yd = -(round(self.aruco_msg.position.y, 2) - my_list[0])
             # xd = 2.0
@@ -274,7 +286,7 @@ class Controller:
             Vel = ( 0.1*e_diag )*Flag_r
             Omega = ( 1*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
         if state=='No_M_detected':
-            Vel = ( 0.1*e_diag+0.00003*int_e )*Flag_r
+            Vel = ( 0.2*e_diag+0.00003*int_e )*Flag_r
             Omega = ( 1*np.arctan2( np.sin(e_heading), np.cos(e_heading) ) )*Flag_r
             # if e_t<=0.15:
             #     Vel = 0
@@ -284,7 +296,6 @@ class Controller:
 
         "Get the required velocity of each wheel to reach the goal"
         self.l_w_msg = (1/(2*R))*(2*Vel-Omega*L)
-        #self.l_w_msg = 5
         if self.l_w_msg >= 10:
              self.l_w_msg = 10
         if self.l_w_msg <= -10:
@@ -299,18 +310,23 @@ class Controller:
             """ If the button have not been pressed and the total error is 0, then the goal
             have been reached, so the program waits for the confirmation button"""
             if Button==0:
-                if e_t==0.0:
+                if e_t<=0.03:
+                    self.left_wheel_vel.publish(0)
+                    self.right_wheel_vel.publish(0)
                     Button = input('Enter 1: ')
                     k = 1
-                    my_list.clear()
+                    #my_list.clear()
                 elif e_t<0.01:
                     k += 1
             elif Button==1:
             # """If the button have been pressed and the total error is 0, the robot
             # have been arrived to the initial position, then waits for a new table request"""
-                if e_t==0.0:
+                if e_t<=0.05:
+                    self.left_wheel_vel.publish(0)
+                    self.right_wheel_vel.publish(0)
                     Button = 0
-                    aruco_num = input('Enter ArUco Marker id: ')
+                    state = 'No_M_detected'
+                    aruco_num_request()
 
         "If no ArUco marker is detected, set the designed path points as the goal"
         if state=='No_M_detected':
@@ -548,9 +564,10 @@ if __name__ == '__main__':
     #         print('A:', A)
     #         if line == '0':
     #             break
+    List_aruco_ids = ['12','13','14','15','16','17','18','21','25']
     "Number of the table request:"
     # aruco_num = A
-    aruco_num = input('Enter ArUco Marker id: ')
+    aruco_num_request()
     Flag1,Flag2,Flag3,Flag4 = 0,0,0,0
     Button = 0
     int_e = 0
