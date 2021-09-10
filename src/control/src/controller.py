@@ -199,6 +199,7 @@ class Controller:
         global smallest
         global Omega
         global t
+        global state
 
         "Get the POSE of the robot:"
         pos_x = round(msg1.pose.pose.position.x, 2)
@@ -663,6 +664,30 @@ if __name__ == '__main__':
             plt.ylabel("Orientation (rad)")
             plt.xlabel("Time (s)")
             plt.legend()
+            fig, (ax1, ax2) = plt.subplots(2)
+            fig.suptitle('Tracking')
+            ax1.plot(my_t, ref_x, 'r--', label='Ref x')
+            ax1.plot(my_t, cord_x, 'g', label='Pos x')
+            ax1.plot(my_t, ref_y, 'k--', label='Ref y')
+            ax1.plot(my_t, cord_y, 'b', label='Pos y')
+
+            ax2.plot(1,6, 'x',  label='Starting point')
+            ax2.plot(2.4,-2, 'ro', label='Tables')
+            ax2.plot(2.4,-5.5, 'ro')
+            ax2.plot(2.4,-9, 'ro')
+            ax2.plot(-.2,-2, 'ro')
+            ax2.plot(-.2,-5.5, 'ro')
+            ax2.plot(-.2,-9, 'ro')
+            ax2.plot(-2.8,-2, 'ro')
+            ax2.plot(-2.8,-5.5, 'ro')
+            ax2.plot(-2.8,-9, 'ro')
+            ax2.plot(tray_x6[4],tray_y6[4], 'kD', label='Final point')
+            ax2.plot(my_listx,my_listy, 'b--', label='Path')
+            ax2.plot(cord_x,cord_y, 'g',  label='Robot path')
+            ax1.legend()
+            ax2.legend()
+            ax2.set(xlabel='X position (m)', ylabel='Y Position (m)')
+            ax1.set(xlabel='Time (s)', ylabel='Position (m)')
             plt.show()
 
     except rospy.ROSInterruptException as e:
